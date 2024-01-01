@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'components/square.dart';
+import 'helper/helper_methods.dart';
 
 class Gameboard extends StatefulWidget {
   const Gameboard({super.key});
@@ -15,16 +17,9 @@ class _GameboardState extends State<Gameboard> {
         itemCount: 8 * 8,
         gridDelegate:
             const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
-        itemBuilder: (context, index) => Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Center(
-            child: Container(
-              child: Text(
-                index.toString(),
-              ),
-            ),
-          ),
-        ),
+        itemBuilder: (context, index) {
+          return Square(isWhite: isWhite(index));
+        },
       ),
     );
   }
