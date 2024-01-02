@@ -12,11 +12,58 @@ class Gameboard extends StatefulWidget {
 
 class _GameboardState extends State<Gameboard> {
   late List<List<ChessPiece?>> board;
+  ChessPiece? selectedPiece;
+  int selecteRow = -1;
+  int selecteCol = -1;
+
+  List<List<int>> validMoves = [];
 
   @override
   void initState() {
     super.initState();
     _initializeBoard();
+  }
+
+  void pieceSelected(int row, int col) {
+    setState(() {
+      if (board[row][col] != null) {
+        selectedPiece = board[row][col];
+        selecteRow = row;
+        selecteCol = col;
+      }
+      validMoves = calculateRawValidMoves();
+    });
+  }
+
+  List<List<int>> calculateRawValidMoves(int row, int col, ChessPiece? piece) {
+    List<List<int>> candidateMoves = [];
+
+    int direction = piece!.isWhite ? -1 : 1;
+
+    switch (piece.type) {
+      case ChessPieceType.pawn:
+        if (inBoard(row + direction, col) &&
+            board[row + direction][col] == null) {
+          candidateMoves.add([row + direction, col]);
+        }
+
+        if ((row==1 && ! piece.isWhite) || (row==6 && piece.isWhite)){
+          if (inBoard(row+2, col) && )
+        }
+
+        break;
+      case ChessPieceType.rook:
+        break;
+      case ChessPieceType.knight:
+        break;
+      case ChessPieceType.bishop:
+        break;
+      case ChessPieceType.king:
+        break;
+      case ChessPieceType.queen:
+        break;
+      default:
+    }
   }
 
   void _initializeBoard() {
@@ -147,10 +194,13 @@ class _GameboardState extends State<Gameboard> {
             itemBuilder: (context, index) {
               int row = index ~/ 8;
               int col = index % 8;
+              bool isSelected = selecteRow == row && selecteCol == col;
 
               return Square(
                 isWhite: isWhite(index),
                 piece: board[row][col],
+                isSelected: isSelected,
+                onTap: () => pieceSelected(row, col),
               );
             },
           ),
