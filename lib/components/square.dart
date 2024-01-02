@@ -1,8 +1,11 @@
+import 'package:chessmate/components/pieces.dart';
 import 'package:flutter/material.dart';
 
 class Square extends StatelessWidget {
   final bool isWhite;
-  const Square({super.key, required this.isWhite});
+  final ChessPiece? piece;
+
+  const Square({super.key, required this.isWhite, this.piece});
 
   @override
   Widget build(BuildContext context) {
