@@ -1,5 +1,6 @@
 import 'package:chessmate/components/pieces.dart';
 import 'package:flutter/material.dart';
+import 'package:chessmate/values/colors.dart';
 
 class Square extends StatelessWidget {
   final bool isWhite;
@@ -10,7 +11,13 @@ class Square extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: isWhite ? Colors.grey[200] : Colors.grey[500],
+      color: isWhite ? foregroundColor : backgroundColor,
+      child: piece != null
+          ? Image.asset(
+              piece!.imagePath,
+              color: piece!.isWhite ? Colors.white : Colors.black,
+            )
+          : null,
     );
   }
 }
