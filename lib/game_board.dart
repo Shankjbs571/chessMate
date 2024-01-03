@@ -1,4 +1,5 @@
 import 'package:chessmate/components/pieces.dart';
+import 'package:chessmate/values/colors.dart';
 import 'package:flutter/material.dart';
 import 'components/square.dart';
 import 'helper/helper_methods.dart';
@@ -31,7 +32,8 @@ class _GameboardState extends State<Gameboard> {
         selecteRow = row;
         selecteCol = col;
       }
-      validMoves = calculateRawValidMoves();
+      validMoves =
+          calculateRawValidMoves(selecteRow, selecteCol, selectedPiece);
     });
   }
 
@@ -47,8 +49,24 @@ class _GameboardState extends State<Gameboard> {
           candidateMoves.add([row + direction, col]);
         }
 
-        if ((row==1 && ! piece.isWhite) || (row==6 && piece.isWhite)){
-          if (inBoard(row+2, col) && )
+        if ((row == 1 && !piece.isWhite) || (row == 6 && piece.isWhite)) {
+          if (inBoard(row + 2 * direction, col) &&
+              board[row + 2 * direction][col] == null &&
+              board[row + direction][col] == null) {
+            candidateMoves.add([row + 2 * direction, col]);
+          }
+        }
+
+        if (inBoard(row + direction, col - 1) &&
+            board[row + direction][col - 1] != null &&
+            board[row + direction][col - 1]!.isWhite) {
+          candidateMoves.add([row + direction, col - 1]);
+        }
+
+        if (inBoard(row + direction, col + 1) &&
+            board[row + direction][col + 1] != null &&
+            board[row + direction][col + 1]!.isWhite) {
+          candidateMoves.add([row + direction, col + 1]);
         }
 
         break;
@@ -64,6 +82,7 @@ class _GameboardState extends State<Gameboard> {
         break;
       default:
     }
+    return candidateMoves;
   }
 
   void _initializeBoard() {
@@ -175,7 +194,7 @@ class _GameboardState extends State<Gameboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 231, 220, 114),
+      backgroundColor: backgroundColor,
       body: Center(
         child: Container(
           decoration: BoxDecoration(
@@ -195,12 +214,20 @@ class _GameboardState extends State<Gameboard> {
               int row = index ~/ 8;
               int col = index % 8;
               bool isSelected = selecteRow == row && selecteCol == col;
+              bool isValidMove = false;
+
+              for (var position in validMoves) {
+                if (position[0] == row && position[1] == col) {
+                  isValidMove = true;
+                }
+              }
 
               return Square(
                 isWhite: isWhite(index),
                 piece: board[row][col],
                 isSelected: isSelected,
                 onTap: () => pieceSelected(row, col),
+                isValidMove: isValidMove,
               );
             },
           ),
