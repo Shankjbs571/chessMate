@@ -1,6 +1,10 @@
-# chessmate
 
-A new Flutter project.
+<img src="https://github.com/Shankjbs571/chessMate/blob/main/lib/images/unnamed.jpg?raw=true" alt="Image" width="200"/>
+# chesssMate
+
+A Flutter learning project focused on building a chess app.
+
+
 
 ## Getting Started
 
