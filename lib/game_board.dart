@@ -1,6 +1,7 @@
 import 'package:chessmate/components/pieces.dart';
 import 'package:chessmate/values/colors.dart';
 import 'package:flutter/material.dart';
+import 'components/dead_piece.dart';
 import 'components/square.dart';
 import 'helper/helper_methods.dart';
 
@@ -18,6 +19,10 @@ class _GameboardState extends State<Gameboard> {
   int selecteCol = -1;
 
   List<List<int>> validMoves = [];
+  List<ChessPiece?> deadWhitePieces = [];
+  List<ChessPiece?> deadBlackPieces = [];
+
+  bool isWhiteTurn = true;
 
   @override
   void initState() {
@@ -27,7 +32,14 @@ class _GameboardState extends State<Gameboard> {
 
   void pieceSelected(int row, int col) {
     setState(() {
-      if (board[row][col] != null) {
+      if (selectedPiece == null && board[row][col] != null) {
+        if (board[row][col]!.isWhite == isWhiteTurn) {
+          selectedPiece = board[row][col];
+          selecteRow = row;
+          selecteCol = col;
+        }
+      } else if (board[row][col] != null &&
+          board[row][col]!.isWhite == selectedPiece!.isWhite) {
         selectedPiece = board[row][col];
         selecteRow = row;
         selecteCol = col;
@@ -341,6 +353,15 @@ class _GameboardState extends State<Gameboard> {
   }
 
   void movePiece(int newRow, int newCol) {
+    if (board[newRow][newCol] != null) {
+      var capturedPiece = board[newRow][newCol];
+      if (capturedPiece!.isWhite) {
+        deadWhitePieces.add(capturedPiece);
+      } else if (!capturedPiece.isWhite) {
+        deadBlackPieces.add(capturedPiece);
+      }
+    }
+
     board[newRow][newCol] = selectedPiece;
     board[selecteRow][selecteCol] = null;
 
@@ -350,49 +371,83 @@ class _GameboardState extends State<Gameboard> {
       selecteCol = -1;
       validMoves = [];
     });
+
+    isWhiteTurn = !isWhiteTurn;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
-      body: Center(
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.black,
-              width: 10,
+      body: Column(
+        children: [
+          //DEAD WHITE PIECES
+          Expanded(
+              child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: deadWhitePieces.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 8),
+                  itemBuilder: (context, index) => DeadPiece(
+                        imagePath: deadWhitePieces[index]!.imagePath,
+                        isWhite: true,
+                      ))),
+
+          //chess board
+          Expanded(
+            flex: 3,
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.black,
+                    width: 10,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                height: 400,
+                width: 400,
+                child: GridView.builder(
+                  itemCount: 8 * 8,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 8),
+                  itemBuilder: (context, index) {
+                    int row = index ~/ 8;
+                    int col = index % 8;
+                    bool isSelected = selecteRow == row && selecteCol == col;
+                    bool isValidMove = false;
+
+                    for (var position in validMoves) {
+                      if (position[0] == row && position[1] == col) {
+                        isValidMove = true;
+                      }
+                    }
+
+                    return Square(
+                      isWhite: isWhite(index),
+                      piece: board[row][col],
+                      isSelected: isSelected,
+                      onTap: () => pieceSelected(row, col),
+                      isValidMove: isValidMove,
+                    );
+                  },
+                ),
+              ),
             ),
-            borderRadius: BorderRadius.circular(4),
           ),
-          height: 400,
-          width: 400,
-          child: GridView.builder(
-            itemCount: 8 * 8,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 8),
-            itemBuilder: (context, index) {
-              int row = index ~/ 8;
-              int col = index % 8;
-              bool isSelected = selecteRow == row && selecteCol == col;
-              bool isValidMove = false;
 
-              for (var position in validMoves) {
-                if (position[0] == row && position[1] == col) {
-                  isValidMove = true;
-                }
-              }
-
-              return Square(
-                isWhite: isWhite(index),
-                piece: board[row][col],
-                isSelected: isSelected,
-                onTap: () => pieceSelected(row, col),
-                isValidMove: isValidMove,
-              );
-            },
-          ),
-        ),
+          //DEAD BLACK PIECES
+          Expanded(
+              child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: deadBlackPieces.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 8),
+                  itemBuilder: (context, index) => DeadPiece(
+                        imagePath: deadBlackPieces[index]!.imagePath,
+                        isWhite: false,
+                      ))),
+        ],
       ),
     );
   }
