@@ -31,6 +31,9 @@ class _GameboardState extends State<Gameboard> {
         selectedPiece = board[row][col];
         selecteRow = row;
         selecteCol = col;
+      } else if (selectedPiece != null &&
+          validMoves.any((element) => element[0] == row && element[1] == col)) {
+        movePiece(row, col);
       }
       validMoves =
           calculateRawValidMoves(selecteRow, selecteCol, selectedPiece);
@@ -39,11 +42,14 @@ class _GameboardState extends State<Gameboard> {
 
   List<List<int>> calculateRawValidMoves(int row, int col, ChessPiece? piece) {
     List<List<int>> candidateMoves = [];
-
-    int direction = piece!.isWhite ? -1 : 1;
+    if (piece == null) {
+      return [];
+    }
 
     switch (piece.type) {
       case ChessPieceType.pawn:
+        int direction = piece.isWhite ? -1 : 1;
+
         if (inBoard(row + direction, col) &&
             board[row + direction][col] == null) {
           candidateMoves.add([row + direction, col]);
@@ -59,13 +65,13 @@ class _GameboardState extends State<Gameboard> {
 
         if (inBoard(row + direction, col - 1) &&
             board[row + direction][col - 1] != null &&
-            board[row + direction][col - 1]!.isWhite) {
+            board[row + direction][col - 1]!.isWhite != piece.isWhite) {
           candidateMoves.add([row + direction, col - 1]);
         }
 
         if (inBoard(row + direction, col + 1) &&
             board[row + direction][col + 1] != null &&
-            board[row + direction][col + 1]!.isWhite) {
+            board[row + direction][col + 1]!.isWhite != piece.isWhite) {
           candidateMoves.add([row + direction, col + 1]);
         }
 
@@ -87,7 +93,7 @@ class _GameboardState extends State<Gameboard> {
               break;
             }
             if (board[newRow][newCol] != null) {
-              if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+              if (board[newRow][newCol]!.isWhite != piece!.isWhite) {
                 candidateMoves
                     .add([newRow, newCol]); //killing the opposite piece
               }
@@ -118,7 +124,7 @@ class _GameboardState extends State<Gameboard> {
             continue;
           }
           if (board[newRow][newCol] != null) {
-            if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+            if (board[newRow][newCol]!.isWhite != piece!.isWhite) {
               candidateMoves.add([newRow, newCol]);
             }
             continue;
@@ -128,10 +134,94 @@ class _GameboardState extends State<Gameboard> {
 
         break;
       case ChessPieceType.bishop:
+        var bishopMoves = [
+          [-1, -1],
+          [-1, 1],
+          [1, -1],
+          [1, 1],
+        ];
+
+        for (var direction in bishopMoves) {
+          var i = 1;
+          while (true) {
+            var newRow = row + i * direction[0];
+            var newCol = col + i * direction[1];
+
+            if (!inBoard(newRow, newCol)) {
+              break;
+            }
+            if (board[newRow][newCol] != null) {
+              if (board[newRow][newCol]!.isWhite != piece!.isWhite) {
+                candidateMoves.add([newRow, newCol]);
+              }
+              break;
+            }
+            candidateMoves.add([newRow, newCol]);
+            i++;
+          }
+        }
+
         break;
       case ChessPieceType.king:
+        var kingMoves = [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+          [-1, -1],
+          [1, -1],
+          [-1, 1],
+          [1, 1],
+        ];
+        for (var move in kingMoves) {
+          var newRow = row + move[0];
+          var newCol = col + move[1];
+
+          if (!inBoard(newRow, newCol)) {
+            continue;
+          }
+          if (board[newRow][newCol] != null) {
+            if (board[newRow][newCol]!.isWhite != piece!.isWhite) {
+              candidateMoves.add([newRow, newCol]);
+            }
+            continue;
+          }
+          candidateMoves.add([newRow, newCol]);
+        }
+        print(candidateMoves);
+
         break;
       case ChessPieceType.queen:
+        var directions = [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+          [-1, -1],
+          [1, -1],
+          [-1, 1],
+          [1, 1],
+        ];
+        for (var direction in directions) {
+          var i = 1;
+          while (true) {
+            var newRow = row + i * direction[0];
+            var newCol = col + i * direction[1];
+
+            if (!inBoard(newRow, newCol)) {
+              break;
+            }
+            if (board[newRow][newCol] != null) {
+              if (board[newRow][newCol]!.isWhite != piece!.isWhite) {
+                candidateMoves.add([newRow, newCol]);
+              }
+              break;
+            }
+            candidateMoves.add([newRow, newCol]);
+            i++;
+          }
+        }
+
         break;
       default:
     }
@@ -142,6 +232,12 @@ class _GameboardState extends State<Gameboard> {
     List<List<ChessPiece?>> newBoard =
         List.generate(8, (index) => List.generate(8, (index) => null));
 
+    // testing
+    // newBoard[3][3] = ChessPiece(
+    //   type: ChessPieceType.king,
+    //   isWhite: false,
+    //   imagePath: './lib/images/black-king.png',
+    // );
     //place pawns
     for (int i = 0; i < 8; i++) {
       newBoard[1][i] = ChessPiece(
@@ -242,6 +338,18 @@ class _GameboardState extends State<Gameboard> {
       imagePath: './lib/images/black-queen.png',
     );
     board = newBoard;
+  }
+
+  void movePiece(int newRow, int newCol) {
+    board[newRow][newCol] = selectedPiece;
+    board[selecteRow][selecteCol] = null;
+
+    setState(() {
+      selectedPiece = null;
+      selecteRow = -1;
+      selecteCol = -1;
+      validMoves = [];
+    });
   }
 
   @override

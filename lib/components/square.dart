@@ -22,7 +22,7 @@ class Square extends StatelessWidget {
     Color? squareColor;
 
     if (isSelected) {
-      squareColor = Color.fromARGB(255, 108, 255, 67);
+      squareColor = const Color.fromARGB(255, 108, 255, 67);
     } else if (isValidMove) {
       squareColor = const Color.fromARGB(255, 125, 226, 128);
     } else {
@@ -33,6 +33,7 @@ class Square extends StatelessWidget {
       onTap: onTap,
       child: Container(
         color: squareColor,
+        margin: EdgeInsets.all(isValidMove ? 4 : 0),
         child: piece != null
             ? Image.asset(
                 piece!.imagePath,
